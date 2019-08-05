@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="HTML,CSS,XML,JavaScript">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <style>
+  body{
+  	margin:0;
+  }
+	.main{
+		border:10px solid #e2e2e2;
+		border-bottom-width:40px;
+		max-width: 800px;
+		margin:0 auto;
+		width:100%;
+	}
+	.main:after{
+		content:"";
+		clear: both;
+		display: table;		
+	}
+	.navbar{
+		background: #f0f0f1;
+		box-sizing: border-box;
+		float: left;
+	    padding: 38px 30px;
+	    width: 100%; 
+  	}
+	.navbar h1{
+		color:#000;
+		font-size: 33px;
+		margin:0;
+	}
+	.navbar p{
+		color: #676767;
+		font-size: 21px;
+		margin:0;
+	}
+	.container{
+		box-sizing: border-box;
+		display: flex;
+		float: left;
+		width: 100%;
+	}
+	.left_content{
+		box-sizing: border-box;
+		flex: 1;
+		padding: 35px;
+		padding-left: 30px;
+		padding-right: 0;
+
+	}
+	.left_content h1{
+		color: #000;
+		font-size:18px;
+		margin:0;
+		margin-bottom: 21px;
+	}
+
+	.form{
+		float: left;
+		width: 85%;
+	}
+	.form label{
+	    color: #000;
+	    display: block;
+	    font-size: 16px;
+	    margin: 0;
+	    margin: 10px 0;
+	    margin-bottom: 5px;
+	}
+	.form input{
+		border: 1px solid #dedede;
+	    background: #ececec;
+	    border-radius: 5px;
+		height: 38px;	    
+	    padding: 0px 4px;
+	    width: 100%;
+	}
+	.form button{
+		background: #434343;
+	    border-top: 1px solid #8e8e8e;
+	    border-left: 1px solid #4e4e4e;
+	    border-right: 1px solid #595959;
+	    border-bottom: 0;
+	    border-radius: 5px;
+	    color: #fff;
+		font-size: 16px;
+	    margin-top: 40px;
+	    padding: 8px 14px;
+	}
+	.center{
+		background: #f0f0f1;
+		padding: 2px;
+	}
+
+	.right_content{
+		flex: 1;
+		padding: 35px 16px;
+	}
+
+	.right_content h1 {
+	    font-size: 18px;
+	    color: #000;
+	    margin: 0;
+	    margin-bottom: 35px;
+	}
+	
+	.right_content .et-tlist{
+		border: 4px solid #dedede;
+		border-spacing: 0;
+		border-radius: 5px;
+		width: 100%;		
+ 	}
+ 	.right_content .et-tlist tr{
+ 		background: #fff;
+ 	}
+ 	.right_content .et-tlist tr:nth-child(even){
+ 		background: #ececec;
+ 	}
+ 	.right_content .et-tlist td{
+ 		font-size: 14px;
+ 		padding: 15px; 		
+ 	}
+ 	.right_content .et-tlist td:last-child{
+ 		text-align: right;
+ 	}
+ 	.right_content .et-tlist td span{
+ 		color:#666666;
+ 		color:#666666;
+ 		font-size: 12px; 		
+ 	}
+
+ 	
+  </style>
+  
+</head>
+
+<body>
+<div class="main">
+	<div class="navbar">
+		<h1>Task Tracker</h1><p>v2. 0</p>
+	</div>
+	<div class="container">
+		<div class="left_content">
+			<h1>Create a Task</h1>
+			<div class="form">	
+				<label>Task Name</label><input type="" name="">
+			</div>
+			<div class="form">	
+				<label>Date</label>
+				<input type="" name="">
+			</div>
+			<div class="form">	
+				<label>Assigned To</label><input type="" name="">
+			</div>
+			<div class="form">
+				<button>Submit</button>
+			</div>
+		</div>
+		<div class="center"></div>
+		<div class="right_content">
+				<h1>Existing Tasks</h1>
+				<table class="et-tlist">
+					<tbody>
+						<tr>
+							<td>Task Name <span>12/07/2012</span></td>
+							<td>John Doe</td>
+						</tr>
+						<tr>
+							<td>Task Name <span>12/07/2012</span></td>
+							<td>John Doe</td>
+						</tr>
+						<tr>
+							<td>Task Name <span>12/07/2012</span></td>
+							<td>John Doe</td>
+						</tr>
+						<tr>
+							<td>Task Name <span>12/07/2012</span></td>
+							<td>John Doe</td>
+						</tr>
+						<tr>
+							<td>Task Name <span>12/07/2012</span></td>
+							<td>John Doe</td>
+						</tr>
+						<tr>
+							<td>Task Name <span>12/07/2012</span></td>
+							<td>John Doe</td>
+						</tr>
+						<tr>
+							<td>Task Name <span>12/07/2012</span></td>
+							<td>John Doe</td>
+						</tr>
+						
+					</tbody>
+				</table>
+		</div>
+	</div>
+</div>
+
+
+</body>
+
+</html>

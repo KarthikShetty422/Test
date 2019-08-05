@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test</title>
+	<link rel="stylesheet" type="text/css" href="test.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script type="text/javascript" src="test.js"></script>
+</head>
+<body>
+<div class="test-table">
+<div class="table-header">
+<h1>Task Tracker</h1>
+<p>v2.0</p>
+</div>
+<div class="table-content">
+		<div class="input-fields">
+		<h1>Create a Task</h1>
+		<form >
+		Task Name:<br>
+		<input type="text" class="form-input" id="taskName" name="taskname" >
+		<br>
+		Date:<br>
+		<input type="date"  class="form-input" id="date" name="date">
+		<br><br>
+		Assigned To:<br>
+		<input type="text"  class="form-input" id="assignedTo" name="assignedto" >
+		<br><br>
+		<span id="errorMessage"></span>
+		</form>
+		<button id="submit">Submit</button>
+		</div>
+        <div class="showData">
+		<h1>Existing Tasks</h1>
+		<div id="showData">
+		</div>
+		</div>
+</div>
+</div>
+</body>
+</html>

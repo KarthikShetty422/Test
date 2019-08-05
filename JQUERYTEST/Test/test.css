@@ -1,0 +1,81 @@
+.test-table{
+     width: 800px;
+     margin: auto;
+     padding:10px 0px;
+     border:10px solid #e2e2e2;
+     background-color: #f0f0f0;
+}
+ .test-table:after{
+     content: "";
+     display: table;
+     clear: both;
+}
+ .table-header {
+     padding: 20px;
+}
+ .table-header h1{
+     margin-bottom: 0;
+}
+ .table-header p{
+     margin: 0 0 0 5px;
+}
+ .table-content{
+     display: flex;
+     background-color: #fff;
+}
+ .input-fields{
+     width:calc(50% - 4px);
+     margin:auto;
+     background: #fff;
+     float: left;
+     border-right:4px solid #f0f0f0;
+     padding: 20px;
+     box-sizing: border-box;
+}
+ .input-fields input{
+     width: 80%;
+     padding:10px 20px;
+     display: block;
+     background-color: #ececec;
+     border:0;
+     border-radius: 3px;
+}
+ .showData{
+     width:50%;
+     float: left;
+     background: #fff;
+     padding: 20px;
+     box-sizing: border-box;
+}
+ #showData {
+     font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+     border-collapse: collapse;
+     width: 100%;
+}
+ #showData tr{
+     border: 1px solid #ddd;
+     padding: 8px;
+}
+ #showData tr:nth-child(even){
+     background-color: #f2f2f2;
+}
+ #showData tr:hover {
+     background-color: #ddd;
+}
+ table{
+     border-spacing: 0;
+     border:3px solid #dedede;
+     width: 100%;
+}
+ table tr td{
+     padding: 5px;
+}
+ #submit{
+     background-color: #434343;
+     padding: 7px 15px;
+     border: 0;
+     color: #FFF;
+}
+ #errorMessage{
+     color: red;
+}

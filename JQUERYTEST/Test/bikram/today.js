@@ -1,0 +1,763 @@
+/**
+ * mapModule renders data sets with different visual representation.
+ * @type {{renderAirports}}
+ */
+var mapModules = (function () {
+    container: 'map', // container id
+    mapboxgl.accessToken = 'pk.eyJ1IjoiamNhbGtpbnMiLCJhIjoiY2pjbDFyb2Q4MDJ6ZjJ3cndpNHBwa2xhOSJ9.jWd6RoywpgpBkwzUL-JQEQ';
+    var map = new mapboxgl.Map({
+            container: 'map', // container id
+            style: 'mapbox://styles/mapbox/light-v9',
+            center: [-110, 37.8],
+            zoom: 3.5 // starting zoom
+    }),
+    distanceMetric = "miles",
+    airports = [];
+    var searchDropdown = document.getElementsByClassName("anchor");
+
+    /**
+     * Renders airports
+     */
+    function renderMap(configOandD) {
+        map.on('load', function () {
+            map.addControl(new mapboxgl.FullscreenControl());
+            drawForm();
+            airportsDropdown();
+
+            if (configOandD === undefined || configOandD === '') {
+                // displayAirportLocations(map);
+                setGeo();
+            } else {
+                displayExternalRoutesWithOandD(map, configOandD);
+            }
+        });
+    }
+
+    // When a click event occurs on a feature in the places layer, open a popup at the
+    // location of the feature, with description HTML from its properties.
+    function popUpVal(popUpData) {
+        
+    // Change the cursor to a pointer when the mouse is over the places layer.
+    // When a click event occurs on a feature in the places layer, open a popup at the
+    // location of the feature, with description HTML from its properties.
+    var popup = new mapboxgl.Popup({
+        closeButton: true,
+        closeOnClick: true
+    });
+    routeIdVal.forEach(function(routeId) {
+        map.on('mouseenter', routeId, function (e) {
+            console.log("e50",e);
+            map.getCanvas().style.cursor = 'pointer';
+            var coordinatesvalues = [e.lngLat.lng,e.lngLat.lat];
+          setTimeout( () =>{
+               var inputFields = document.getElementsByClassName('myInput');
+               console.log(inputFields[1].defaultValue,"inputFields",inputFields[0].defaultValue);
+                startbooking(inputFields);
+        },3000);
+             OandDCodeandName();
+             popOverContet = originairportName[0]+'/'+originairportCode + '</br>'
+             +'to'+' '+destinationairportName[0]+' '+destinationairportCode+
+             '</br>'+'<button type="button" target="_blank" id="popUpbookingbtn" class="btn start-booking input-container"  item-index="1">'+'StartBooking'+'</button>'
+             +'</br>'+'</br>'+'<a class="more-info">'+'More info about'+' '+destinationairportName[0]+'</a>';
+       
+        popup.setLngLat(coordinatesvalues)
+        .setHTML(popOverContet)
+        .addTo(map);
+        });
+
+        // Change it back to a pointer when it leaves.
+        map.on('mouseleave', routeId, function () {
+            map.getCanvas().style.cursor = '';
+            //popup.remove();
+        });
+
+    });
+    }
+
+    function OandDCodeandName(){
+        originairport = inputFields[0].defaultValue;
+        destinationairport = inputFields[1].defaultValue;
+        originairport = originairport.split("(");
+        originairport = originairport[1];
+        originairport = originairport.split("-");
+        originairportCode = originairport[0];
+        originairportName = originairport[1];
+        originairportName = originairportName.split(" I");
+        destinationairport = destinationairport.split("(");
+        destinationairport = destinationairport[1];
+        destinationairport = destinationairport.split("-");
+        destinationairportCode = destinationairport[0];
+        destinationairportName = destinationairport[1];
+        destinationairportName = destinationairportName.split(" I");
+    }
+    /**
+     * Paints Airports
+     * @param { Object } map
+     */
+    function displayAirportLocations(map) {
+        $.ajax({
+            url: "https://routemap-prod-site-westus2.azurewebsites.net/api/stations",
+            'type' : 'GET',
+            dataType: "json",
+            success: function(response) {
+                addCircles(response);
+            },
+            error: function(xhr, textStatus, errorThrown) {
+                console.log("errorThrown: ", xhr)
+            }
+        });
+    }
+
+    function addCircles(response, originAirport) {
+        var data = GeoJSON.parse(response, {
+            Point: ['latitude', 'longitude']
+        });
+
+      popUpData = "airports" + "_" + Math.floor(Math.random() * 26) + Date.now();
+       map.addLayer(getAirportPoints({id: "points" + "_" + Math.floor(Math.random() * 26) + Date.now(), data: data}));
+
+       if(originAirport !== undefined) {
+            var originData = GeoJSON.parse(originAirport, {
+                Point: ['latitude', 'longitude']
+            });
+            map.addLayer(getOriginHighlighted({ id: "highlight" + "_" + Math.floor(Math.random() * 26) + Date.now(), data: originData}));
+        }
+
+     if(popUpData){
+       map.addLayer(getAirportLayer({id: popUpData, data: data}));
+       popUpVal(popUpData);
+    }
+    }
+
+    var popUpData;
+    var inputTextVal;
+    var dropdownClassId;
+    var origin;
+    var destination;
+    var routeIdVal = [];
+    var clearAllCircles = [];
+    var lineDistance;
+    var routeId;
+    var originCoordinates;
+    var destinationCoordinates;
+    var pathFlightNumber;
+    var pointsData = [];
+    var originAirportdata = {};
+    var destinationAirportdata = {};
+    var currentCity;
+    var startBooking;
+    var route;
+    var startBooking;
+    var inputFields;
+    var originairport ;
+    var destinationairport;
+    var originairportCode;
+    var originairportName;
+    var destinationairportCode;
+    var destinationairportName;
+    var destinationairportCodeVal;
+    var popOverContet ;
+
+    /**
+     * Displays routes.
+     * @param { Object } map
+     */
+    function displayRoutes(map, element, id) {
+        clearAllCircles.forEach(function(val) {
+            if(map.getLayer(val) && Object.keys(map.getLayer(val)).length > 0) {
+                map.removeLayer(val);
+            }
+        });
+
+        routeIdVal.forEach(function(val) {
+            if(map.getLayer(val) && Object.keys(map.getLayer(val)).length > 0) {
+                map.removeLayer(val);
+            }
+        });
+
+        inputTextVal = element.innerHTML;
+        dropdownClassId = id;
+        inputTextVal = inputTextVal.split("(");
+        inputTextVal = inputTextVal[1];
+        inputTextVal = inputTextVal.split("-");
+        inputTextVal = inputTextVal[0];
+        if(dropdownClassId == 0 && dropdownClassId != 1){
+            origin = inputTextVal;
+         }
+      if(dropdownClassId == 1){ 
+          destination = inputTextVal;
+        }
+        var configOandD = { "origin": origin, "destination": destination };
+        if(configOandD.origin === origin && configOandD.destination === undefined) {
+            fromOrigin(map,configOandD);
+        } else {
+            displayExternalRoutesWithOandD(map,configOandD);
+        }
+    }
+
+    /**
+     * Populates airport dropdown lists.
+     * @param { Object }
+     */
+    function airportsDropdown() {
+        $.ajax({
+            url: "https://routemap-prod-site-westus2.azurewebsites.net/api/stations",
+            'type' : 'GET',
+            dataType: "json",
+            success: function(response) {
+                var stationValues = response;
+                var itemLabel = '';
+                for (var j = 0; j < stationValues.length; j++) {
+                    itemLabel += '<a>' + stationValues[j].name + ", " + stationValues[j].stateProvince +
+                    " (" + stationValues[j].code + "-" + stationValues[j].airportName + ")" + '</a>';
+                }
+                for (var i = 0; i < searchDropdown.length; i++) {
+                    searchDropdown[i].innerHTML = itemLabel;
+                }
+            },
+            error: function(xhr, textStatus, errorThrown) {
+                console.log("errorThrown: ", xhr)
+            }
+        });
+    }
+
+    /**
+     * Paints arcs for each segment.
+     * @param { Object } segment
+     */
+    function drawSegmentsForDirectFlights(originSegment, destinationSegment, flightNumberSegment) {
+        var pathOrigin = originSegment;
+        var pathDestination = destinationSegment;
+        var pathFlightNumber = flightNumberSegment;
+        var origin = [pathOrigin.longitude, pathOrigin.latitude];
+        var destination = [pathDestination.longitude, pathDestination.latitude];
+        
+        console.log(origin,"749",destination);
+                        
+        route = {
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                        origin,
+                        destination
+                    ]
+                }
+            }]
+        };
+   
+        // Calculate the distance in miles between route start/end point.
+        lineDistance = turf.lineDistance(route.features[0], distanceMetric);
+        var arc = [];
+
+        // Draw an arc between the `origin` & `destination` of the two points
+        for (var i = 0; i < lineDistance; i += lineDistance / 500) {
+            var section = turf.along(route.features[0], i, distanceMetric);
+            arc.push(section.geometry.coordinates);
+        }
+
+        // Update the route with calculated arc coordinates
+        route.features[0].geometry.coordinates = arc;
+        routeId = "route" + pathFlightNumber + "_" + Math.floor(Math.random() * 26) + Date.now();
+        routeIdVal.push(routeId);
+        
+        map.addSource(routeId, {
+            "type": "geojson",
+            "data": route
+        });
+
+        map.addLayer({
+            "id": routeId,
+            "source": routeId,
+            "type": "line",
+            "paint": {
+                "line-width": 4,
+                "line-color": "black"// AS color
+            }
+        });
+    }
+
+    /**
+     * Paints arcs for each Connecting segment.
+     * @param { Object } segment
+     */
+    function drawSegmentsForConnectingFlights(originSegment, destinationSegment, flightNumberSegment) {  
+        var pathOrigin = originSegment;
+        var pathDestination = destinationSegment;
+        var pathFlightNumber = flightNumberSegment;
+        var origin = [pathOrigin.longitude, pathOrigin.latitude];
+        var destination = [pathDestination.longitude, pathDestination.latitude];
+        console.log(origin,"750",destination);
+        route = {
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                        origin,
+                        destination
+                    ]
+                }
+            }]
+        };
+  
+         // Calculate the distance in miles between route start/end point.
+        lineDistance = turf.lineDistance(route.features[0], distanceMetric);
+        var arc = [];
+        // Draw an arc between the `origin` & `destination` of the two points
+        for (var i = 0; i < lineDistance; i += lineDistance / 500) {
+            var section = turf.along(route.features[0], i, distanceMetric);
+            arc.push(section.geometry.coordinates);
+        }
+
+        // Update the route with calculated arc coordinates
+        route.features[0].geometry.coordinates = arc;routeId = "route" + pathFlightNumber + "_" + Math.floor(Math.random() * 26) + Date.now();
+        routeIdVal.push(routeId);
+        map.addSource(routeId, {
+            "type": "geojson",
+            "data": route
+        });
+
+        map.addLayer({
+            "id": routeId,
+            "source": routeId,
+            "type": "line",
+            "paint": {
+                "line-width": 2,
+                "line-color": "#50667f"
+            }
+        });
+    }
+
+    /**
+     * Initialize Airports
+     * @param { Object } segment
+     */
+    function initAirport(segment) {
+        var isOriginAirportExisting = airports.filter(function(airport) {
+            return airport.code === segment.originAirport;
+        }).length > 0;
+        var isDestinationAirportExisting = airports.filter(function(airport) {
+            return airport.code === segment.destinationAirport;
+        }).length > 0;
+
+        if(!isOriginAirportExisting) {
+            //Draw Airport
+            var originAirport = {
+                "code": segment.originAirport,
+                "airportName": segment.originAirportName,
+                "name": segment.originAirportCity,
+                "stateProvince": segment.originAirportState,
+                "latitude": segment.originCoordinates.latitude,
+                "longitude": segment.originCoordinates.longitude
+            };
+            airports.push(originAirport);
+            addCircles(originAirport);
+        }
+
+        if(!isDestinationAirportExisting) {
+            //Draw Airport
+            var destinationAirport = {
+                "code": segment.destinationAirport,
+                "airportName": segment.destinationAirportName,
+                "name": segment.destinationAirportCity,
+                "stateProvince": segment.destinationAirportState,
+                "latitude": segment.destinationCoordinates.latitude,
+                "longitude": segment.destinationCoordinates.longitude
+            };
+            airports.push(destinationAirport);
+            addCircles(destinationAirport);
+        }
+    }
+
+    /**
+     * Returns Airport name layer config
+     * @param { Object } config
+     */
+    function getAirportLayer(config) {
+        clearAllCircles.push (config.id);
+        return {
+            "id": config.id,
+            "type": "symbol",
+            "source": {
+                "type": "geojson",
+                "data": config.data
+            },
+            "layout": {
+                "text-field": "{name}",
+                "text-size": 13,
+                "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+                "text-offset": [0, 0.6],
+                "text-anchor": "top"
+            }
+        }
+    }
+
+    /**
+     * Returns Airport points layer config
+     * @param { Object } config
+     */
+    function getAirportPoints(layer) {
+        clearAllCircles.push (layer.id);
+        return {
+            "id": layer.id,
+            "type": "circle",
+            "source": {
+                "type": "geojson",
+                "data": layer.data
+            },
+            "paint": {
+                "circle-color": 'white',
+                "circle-radius": 4,
+                "circle-stroke-width": 1.8,
+                "circle-stroke-color": '#50667f'
+            }
+        }
+    }
+
+    /**
+     * Returns Origin point layer config
+     * @param { Object } config
+     */
+    function getOriginHighlighted(originPoint) {
+        clearAllCircles.push (originPoint.id);
+        return {
+            "id": originPoint.id,
+            "type": "circle",
+            "source": {
+                "type": "geojson",
+                "data": originPoint.data
+            },
+            "paint": {
+                "circle-color": 'black',
+                "circle-radius": 4,
+                "circle-stroke-width": 3,
+                "circle-stroke-color": '#50667f'
+            }
+        }
+    }
+
+    /**
+     * Set current geo location
+     */
+    function setGeo() {
+        $.ajax({url: "https://geoservice.alaskaair.com/api/lookup/resolve",
+            'type' : 'GET',
+            dataType: "json",
+            success: function(result) {
+                var origin = result.ResolvedCity.NearestAlaskaDestination.Code;
+                var currentCity = result.ResolvedCity.NearestAlaskaDestination.Name;
+                setCurrentCity(currentCity);
+                var configOandD = { "origin": origin, "destination": destination };
+                fromOrigin(map, configOandD);
+            },
+            error: function(xhr, textStatus, errorThrown) {
+                console.log("errorThrown: ", xhr);
+            }
+        });
+    } //end SetGeo
+
+
+    /**
+     * Set current aiport city
+     * @param { Object } currentCity
+     */
+    function setCurrentCity(currentCity){
+        currentCity = currentCity;
+    }
+
+    /**
+     * Get current aiport city
+     */
+    function getCurrentCity() {
+        return currentCity;
+    }
+
+    //Creates the HTML for the origin & destination input fields.
+    var toggleContainer = '<div class="toggleContainer">'+
+    '<button class="toggledrawer" id="toggleDrawer">' +
+    '<span class="state-hide">hide details <img src="https://routemap-prod-site-westus2.azurewebsites.net/widget/icons/icon_up.svg"></span>'+
+    '<span class="state-show">Show details <img src="https://routemap-prod-site-westus2.azurewebsites.net/widget/icons/icon_down.svg"></span>'+
+    '</button></div>';
+    var textFrom = '<div class="textFrom input-container">'+
+    '<div class="dropdown">'+
+    '<div id="fromDropdown" class="dropdown-content">'+
+        '<div class="odc-field__container">'+
+        '<input type="text" id="0" class="myInput odc-field__text enable-to" value="" container-id="fromDropdown">'+
+        '<label for="From" class="odc-field__label">From</label>'+
+        '</div>'+
+        '<div class="anchor" item-index="0">'+'</div>'+
+    '</div>'+'</div>'+'</div>';
+    var textTo = '<div class="textTo input-container to-space">'+
+    '<div class="dropdown">'+
+    '<div id="toDropdown" class="dropdown-content">'+
+        '<div class="odc-field__container">'+
+        '<input type="text" id="1" class="myInput odc-field__text enable-start hide-to" value="" container-id="toDropdown">'+
+        '<label for="To" class="odc-field__label">To</label>'+
+        '</div>'+
+        '<div class="anchor" item-index="1">'+'</div>'+
+    '</div>'+'</div>'+'</div>';
+    var startBooking = '<div class="hide-start"><button type="button" target="_blank" disabled class="btn btn-primary start-booking input-container" id="start-booking">Start Booking</button></div>';
+
+    var legend = '<div class="hide-filter show-filter input-container">'+
+    '<hr class="input-container"/>'+
+    '<div>'+
+        '<span class="nonStop input-container"><hr class="nonStop"/>'+ '&nbsp&nbsp'+ 'Non-stop'+ '</span>'+
+    '</div>'+
+    '<div>'+
+        '<span class="connecting input-container"><hr class="connecting"/>'+'&nbsp&nbsp'+ 'Connecting' + '<span>'+'</div>' +
+    '</div>';
+
+    //Applies the origin input field into the map form.
+    function drawForm() {
+        document.getElementById("mapForm").innerHTML = toggleContainer + textFrom + textTo + startBooking + legend;
+    }
+   
+    setTimeout(function() {
+        inputFields = document.getElementsByClassName('myInput');
+        var toggleButton = document.getElementById('toggleDrawer');
+        var toInput = document.getElementById('0');
+        var connecting = document.getElementById('connecting');
+        var viewAllCities = document.getElementById('view-all');
+        startBooking = document.getElementsByClassName('start-booking');
+    
+        for (var i = 0; i < inputFields.length; i++) {
+            inputFields[i].addEventListener('input', function(e) {
+                filterByLetters(e.target.value, e.target);
+            });
+        }
+        for (var i = 0; i < searchDropdown.length; i++) {
+            searchDropdown[i].addEventListener('click', function(e) {
+                displayRoutes(map, e.target, e.target.parentNode.getAttribute('item-index'));
+                $('#'+ e.target.parentNode.getAttribute('item-index')).attr('value', e.target.innerHTML);
+                $('#'+ e.target.parentNode.getAttribute('item-index')).val(e.target.innerHTML);
+                 e.target.parentNode.style.display = 'none';
+            });
+        }
+
+        var currentCity = getCurrentCity();
+        currentCity ? toInput.value = getCurrentCity() : toInput.value = "" ;
+        toInput.focus();
+
+        var toInputField = $('.enable-to');
+        toInputField.change(function(el) {
+            if(this.value !== ""){
+                $('.enable-start').show();
+                $('div').removeClass("hide-start");
+                $('#mapForm').toggleClass('from-height');
+            }
+        });
+
+        var inputElements = $('.odc-field__text');
+        inputElements.change(function(el) {
+            if(this.value !== ""){
+                $(el.target).addClass('odc-field__text--filled');
+            }
+            else {
+                $(el.target).removeClass('odc-field__text--filled');
+            }
+        });
+
+        var inputData = $('.enable-start');
+        inputData.change(function(el) {
+            if(this.value !== ""){
+                $('.start-booking').removeAttr('disabled');
+                $('.show-filter').show();
+            }
+        });
+
+        toggleButton.addEventListener('click', function(e) {
+            $('#mapForm').toggleClass('hide-drawer from-height');
+        });
+        startbooking(inputFields);
+    }, 3000);
+
+    function startbooking(inputFields) {
+        for (var i = 0; i < startBooking.length; i++) {
+            startBooking[i].addEventListener('click', function(e) {
+          
+            var origin = inputFields[0].defaultValue
+            origin = origin.split("(");
+            origin = origin[1];
+            origin = origin.split("-");
+            origin = origin[0];
+
+            var destination = inputFields[1].defaultValue
+            destination = destination.split("(");
+            destination = destination[1];
+            destination = destination.split("-");
+            destination = destination[0];
+
+            var today = new Date();
+            var later = new Date();
+            later.setDate(today.getDate()+3);
+            today= today.toLocaleDateString("en-US");
+            later = later.toLocaleDateString("en-US");
+            document.location.href = 'https://www.alaskaair.com/planbook/shoppingstart?O='+origin+'&D='+destination+'&OD='+today+'&DD='+later+'&E=&OT=&DT=&A=1&C=0&F=&RT=true&frm=avail&RequestType=Calendar';
+        });
+    }
+}
+
+    //Filters the user's airport typed search entry by letters.
+    function filterByLetters(entry, targetElement) {
+        var input, filter, ul, li, a, i;
+        input = entry;
+
+        if (input) {
+            filter = input.toUpperCase();
+        } else {
+            filter = '';
+        }
+        if (filter.length === 0) {
+            for (var i = 0; i < searchDropdown.length; i++) {
+                searchDropdown[i].style.display = "none";
+            }
+        } else {
+            for (var i = 0; i < searchDropdown.length; i++) {
+                if (searchDropdown[i].getAttribute('item-index') === targetElement.getAttribute('id')) {
+                    searchDropdown[i].style.display = "block";
+                } else {
+                    searchDropdown[i].style.display = "none";
+                }
+            }
+
+            div = document.getElementById(targetElement.getAttribute('container-id'));
+            a = div.getElementsByTagName("a");
+            for (i = 0; i < a.length; i++) {
+                if (a[i].innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    a[i].style.display = "";
+                } else {
+                    a[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    var inputvalarray = [];
+    /**
+     * Displays Points between origin and destination
+     * @param { Object } map
+     */
+    function fromOrigin(map, configOandD) {
+        var origin = configOandD.origin;
+        var destination = configOandD.destination;
+        var originAirport = [];
+        if(!destination) {
+            destination = 'all';
+        }
+        $.ajax({
+            url: "https://routemap-prod-site-westus2.azurewebsites.net/api/flights/" + origin + "/" + destination,
+            'type' : 'GET',
+            dataType: "json",
+            success: function(response) {
+                var routes = response;
+                var origin = response[0].segments[0].originCoordinates;
+                routes.map(function(segment){
+                    var segmentdata = segment.segments;
+                    if(segmentdata.length === 1) {
+                        originCoordinates = segmentdata[0].originCoordinates;
+                        destinationCoordinates = segmentdata[0].destinationCoordinates;
+                        pathFlightNumber = segmentdata[0].flightNumber;
+                        originAirportdata = {
+                            "code": segmentdata[0].originAirport,
+                            "airportName": segmentdata[0].originAirportName,
+                            "name": segmentdata[0].originAirportCity,
+                            "stateProvince": segmentdata[0].originAirportState,
+                            "latitude": segmentdata[0].originCoordinates.latitude,
+                            "longitude": segmentdata[0].originCoordinates.longitude
+                        };
+             destinationAirportdata = {
+                            "code": segmentdata[0].destinationAirport,
+                            "airportName": segmentdata[0].destinationAirportName,
+                            "name": segmentdata[0].destinationAirportCity,
+                            "stateProvince": segmentdata[0].destinationAirportState,
+                            "latitude": segmentdata[0].destinationCoordinates.latitude,
+                            "longitude": segmentdata[0].destinationCoordinates.longitude
+                        };
+                         pointsData.push(originAirportdata);
+                        pointsData.push(destinationAirportdata);
+                    } else {
+                        destinationCoordinates = segmentdata[1].destinationCoordinates;
+                        pathFlightNumber = segmentdata[0].flightNumber;
+                        destinationAirportdata = {
+                            "code": segmentdata[1].destinationAirport,
+                            "airportName": segmentdata[1].destinationAirportName,
+                            "name": segmentdata[1].destinationAirportCity,
+                            "stateProvince": segmentdata[1].destinationAirportState,
+                            "latitude": segmentdata[1].destinationCoordinates.latitude,
+                            "longitude": segmentdata[1].destinationCoordinates.longitude
+                        };
+                        pointsData.push(destinationAirportdata);
+                    }
+                })
+                originAirport.push(origin);
+               addCircles(pointsData, originAirport);
+            },
+            error: function(xhr, textStatus, errorThrown){
+                console.log("errorThrown: ", xhr)
+            }
+        });
+    }
+
+    /**
+     * Displays routes between origin and destination
+     * @param { Object } map
+     */
+    function displayExternalRoutesWithOandD(map, configOandD) {
+        var origin = configOandD.origin;
+        var destination = configOandD.destination;
+        var airportsData = [];
+        var originAirport = [];
+        $.ajax({
+            url: "https://routemap-prod-site-westus2.azurewebsites.net/api/flights/" + origin + "/" + destination,
+            'type' : 'GET',
+            dataType: "json",
+            success: function(response) {
+                var routes = response;
+                var origin = response[0].segments[0].originCoordinates;
+                routes.forEach(function (segment) {
+                    segment.segments.forEach(function (segmentdata) {
+                        originCoordinates = segmentdata.originCoordinates;
+                        destinationCoordinates = segmentdata.destinationCoordinates;
+                        pathFlightNumber = segmentdata.flightNumber;
+                        originAirportdata = {
+                            "code": segmentdata.originAirport,
+                            "airportName": segmentdata.originAirportName,
+                            "name": segmentdata.originAirportCity,
+                            "stateProvince": segmentdata.originAirportState,
+                            "latitude": segmentdata.originCoordinates.latitude,
+                            "longitude": segmentdata.originCoordinates.longitude
+                        };
+                        destinationAirportdata = {
+                            "code": segmentdata.destinationAirport,
+                            "airportName": segmentdata.destinationAirportName,
+                            "name": segmentdata.destinationAirportCity,
+                            "stateProvince": segmentdata.destinationAirportState,
+                            "latitude": segmentdata.destinationCoordinates.latitude,
+                            "longitude": segmentdata.destinationCoordinates.longitude
+                        };
+                        airportsData.push(originAirportdata);
+                        airportsData.push(destinationAirportdata);if (segment.segments.length === 1) {
+                            drawSegmentsForDirectFlights(originCoordinates, destinationCoordinates, pathFlightNumber);
+                        }
+                        else {
+                            drawSegmentsForConnectingFlights(originCoordinates, destinationCoordinates, pathFlightNumber);
+                        }
+                    });
+                });
+                originAirport.push(origin);
+                addCircles(airportsData, originAirport);
+            },
+            error: function(xhr, textStatus, errorThrown){
+                console.log("errorThrown: ", xhr)
+            }
+        });
+    }
+
+    return {
+        renderMap: renderMap
+    };
+})();
